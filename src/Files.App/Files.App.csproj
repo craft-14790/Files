@@ -47,6 +47,9 @@
         <Content Update="Assets\Resources\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <Content Update="Assets\FluentIcons\SidebarSections\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
         <Content Update="Assets\FilesOpenDialog\SetFilesAsDefault.reg">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -155,6 +158,18 @@
         <MSBuild Projects="..\Files.App.Server\Files.App.Server.csproj"
                  Targets="Build"
                  Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+    </Target>
+
+    <!-- App tile images are indexed by the PRI pipeline but are not copied to the
+         loose Debug layout. The shell needs the indexed files at their physical
+         package paths to render Start and taskbar icons for FilesDev. -->
+    <Target Name="CopyAppTileAssetsToOutput" AfterTargets="Build">
+        <ItemGroup>
+            <AppTileAsset Include="Assets\AppTiles\**\*.png" />
+        </ItemGroup>
+        <Copy SourceFiles="@(AppTileAsset)"
+              DestinationFiles="@(AppTileAsset->'$(TargetDir)%(Identity)')"
+              SkipUnchangedFiles="true" />
     </Target>
 
     <Import Project="..\Satori.targets" Condition=" '$(Platform)' != 'x86' " />

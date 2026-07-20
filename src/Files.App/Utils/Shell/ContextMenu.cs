@@ -265,21 +265,33 @@ namespace Files.App.Utils.Shell
 
 						void LoadSubMenu()
 						{
-							try
+							InitializeSubMenu(new IntPtr(index));
+							EnumMenuItems(hSubMenu, subItems, true);
+
+							if (index is not 0 && !subItems.Any(item => item.Type is MENU_ITEM_TYPE.MFT_STRING))
 							{
-								cMenu2?.HandleMenuMsg((uint)User32.WindowMessage.WM_INITMENUPOPUP, (IntPtr)hSubMenu, new IntPtr(index));
-							}
-							catch (Exception ex) when (ex is InvalidCastException or ArgumentException)
-							{
-								// TODO: Investigate why this exception happen
-								Debug.WriteLine(ex);
-							}
-							catch (Exception ex) when (ex is COMException or NotImplementedException)
-							{
-								// Only for dynamic/owner drawn? (open with, etc)
+								// Some shell extensions only populate lazy submenus when the menu position is zero.
+								subItems.Clear();
+								InitializeSubMenu(IntPtr.Zero);
+								EnumMenuItems(hSubMenu, subItems, true);
 							}
 
-							EnumMenuItems(hSubMenu, subItems, true);
+							void InitializeSubMenu(IntPtr menuPosition)
+							{
+								try
+								{
+									cMenu2?.HandleMenuMsg((uint)User32.WindowMessage.WM_INITMENUPOPUP, (IntPtr)hSubMenu, menuPosition);
+								}
+								catch (Exception ex) when (ex is InvalidCastException or ArgumentException)
+								{
+									// TODO: Investigate why this exception happen
+									Debug.WriteLine(ex);
+								}
+								catch (Exception ex) when (ex is COMException or NotImplementedException)
+								{
+									// Only for dynamic/owner drawn? (open with, etc)
+								}
+							}
 						}
 					}
 				}
